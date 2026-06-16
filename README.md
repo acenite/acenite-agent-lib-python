@@ -52,3 +52,21 @@ This repository is part of the broader Acenite platform which is still being bui
 Documentation, features, and integrations will evolve over time as the platform progresses.
 
 More information will be published as the system approaches a stable release.
+
+## Host resource metrics
+
+The agent can report lightweight host metrics to Acenite:
+
+```python
+AceniteAgent.start(
+    framework="flask",
+    api_key="your-api-key",
+    service_name="orders-service",
+    enable_host_metrics=True,
+    host_metrics_interval=60,
+    instance_id="server-01",
+)
+```
+
+Host metrics are sent to `/server/metrics/host` separately from heartbeat requests.
+`network_rx_bytes` and `network_tx_bytes` are cumulative host counters; the Acenite backend calculates deltas and chart rates.
