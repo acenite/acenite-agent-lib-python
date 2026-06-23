@@ -4,9 +4,10 @@ from .constants import resolve_acenite_url
 
 BOOT_ID = str(uuid.uuid4())
 
-def send_heartbeat(*,api_key: str, interval: float):
+def send_heartbeat(*, api_key: str, interval: float, jitter: bool = True):
     # jitter each run (avoid thundering herd)
-    time.sleep(random.uniform(0.0, interval/10))  # for 60s interval, 0-10% jitter
+    if jitter:
+        time.sleep(random.uniform(0.0, interval / 10))
 
     try:
         requests.post(

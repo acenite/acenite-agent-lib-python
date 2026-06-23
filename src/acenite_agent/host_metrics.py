@@ -70,8 +70,10 @@ def send_host_metrics(
     interval: float,
     instance_id: str | None = None,
     hostname: str | None = None,
+    jitter: bool = True,
 ):
-    time.sleep(random.uniform(0.0, interval / 10))
+    if jitter:
+        time.sleep(random.uniform(0.0, interval / 10))
 
     try:
         requests.post(

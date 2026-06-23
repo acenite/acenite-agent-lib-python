@@ -23,7 +23,7 @@ def setup_otel(
         instrumentations: list[str] | None,
         api_key: str,
         service_name: str
-) -> None:
+) -> TracerProvider:
     provider = TracerProvider(
         resource=Resource.create({"service.name": service_name})
     )
@@ -59,3 +59,5 @@ def setup_otel(
 
             fn = _load_callable(INSTRUMENTATIONS[name])
             fn()
+
+    return provider

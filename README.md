@@ -55,6 +55,14 @@ More information will be published as the system approaches a stable release.
 
 ## Host resource metrics
 
+Install only the capabilities the service uses:
+
+```sh
+pip install "acenite-agent[monitor,fastapi,availability,host-metrics]>=0.2.0"
+```
+
+Available capability extras are `monitor`, `availability`, `host-metrics`, `flask`, `fastapi`, and `django`. The legacy `heartbeat` extra remains available as an alias for availability dependencies.
+
 The agent can report lightweight host metrics to Acenite:
 
 ```python
@@ -62,11 +70,16 @@ AceniteAgent.start(
     framework="flask",
     api_key="your-api-key",
     service_name="orders-service",
+    enable_application_monitoring=True,
+    enable_heartbeat=True,
+    heartbeat_interval=60,
     enable_host_metrics=True,
     host_metrics_interval=60,
     instance_id="server-01",
 )
 ```
 
-Host metrics are sent to `/server/metrics/host` separately from heartbeat requests.
+Call `AceniteAgent.stop()` during shutdown to stop schedulers and flush tracing. `AceniteAgent.get_tracer()` remains available for manual spans.
+
+Host metrics are sent to `/metrics/host` separately from heartbeat requests.
 `network_rx_bytes` and `network_tx_bytes` are cumulative host counters; the Acenite backend calculates deltas and chart rates.
