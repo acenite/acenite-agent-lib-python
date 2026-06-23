@@ -21,6 +21,22 @@ METRICS = {
 
 
 class HostMetricsTests(unittest.TestCase):
+    @patch.dict(
+        "os.environ",
+        {
+            "ACENITE_AGENT_ALLOW_ENDPOINT_OVERRIDE": "true",
+            "ACENITE_AGENT_INGEST_URL": "http://localhost:5001",
+        },
+        clear=True,
+    )
+    @patch("acenite_agent.host_metrics.time.sleep", return_value=None)
+    @patch("acenite_agent.host_metrics.build_host_metrics_payload", return_value={"metrics": METRICS})
+    @patch("acenite_agent.host_metrics.requests.post")
+    def test_local_override_is_used_for_host_metrics(self, post, _payload, _sleep):
+        send_host_metrics(api_key="test-key", service_name="billing-api", interval=60)
+
+        self.assertEqual(post.call_args.args[0], "http://localhost:5001/metrics/host")
+
     @patch("acenite_agent.host_metrics.collect_host_metrics", return_value=METRICS)
     def test_build_payload_defaults_instance_id_to_hostname(self, _collect):
         payload = build_host_metrics_payload(

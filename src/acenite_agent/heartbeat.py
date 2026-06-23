@@ -1,6 +1,6 @@
 import time, random, uuid, requests
 
-from .constants import ACENITE_URL
+from .constants import resolve_acenite_url
 
 BOOT_ID = str(uuid.uuid4())
 
@@ -10,7 +10,7 @@ def send_heartbeat(*,api_key: str, interval: float):
 
     try:
         requests.post(
-            f"{ACENITE_URL}/heartbeat/",
+            f"{resolve_acenite_url()}/heartbeat/",
             headers={"Authorization": f"Bearer {api_key}"},
             json={
                 "status": "up",

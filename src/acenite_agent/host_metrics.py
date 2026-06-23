@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from .constants import ACENITE_URL
+from .constants import resolve_acenite_url
 
 
 def default_hostname() -> str:
@@ -75,7 +75,7 @@ def send_host_metrics(
 
     try:
         requests.post(
-            f"{ACENITE_URL}/metrics/host",
+            f"{resolve_acenite_url()}/metrics/host",
             headers={"Authorization": f"Bearer {api_key}"},
             json=build_host_metrics_payload(
                 service_name=service_name,

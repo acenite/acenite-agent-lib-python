@@ -3,6 +3,11 @@
 .venv/
 dist/
 
+# Local environment files
+.env
+.env.local
+.env.*.local
+
 # Python cache files
 __pycache__/
 *.py[cod]

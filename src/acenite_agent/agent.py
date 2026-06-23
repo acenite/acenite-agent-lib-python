@@ -1,6 +1,7 @@
 from .otel import setup_otel
 from .heartbeat import send_heartbeat
 from .host_metrics import default_hostname, send_host_metrics
+from .constants import ACENITE_URL, resolve_acenite_url
 from apscheduler.schedulers.background import BackgroundScheduler
 from opentelemetry import trace
 
@@ -28,6 +29,13 @@ class AceniteAgent:
 
         if cls._started:
             return
+
+        resolved_acenite_url = resolve_acenite_url()
+        if enable_logging and resolved_acenite_url != ACENITE_URL:
+            print(
+                "Acenite development endpoint override active: "
+                f"telemetry is being sent to {resolved_acenite_url} instead of production."
+            )
 
         resolved_hostname = (hostname or default_hostname()).strip() or "unknown-host"
         resolved_instance_id = (instance_id or resolved_hostname).strip() or resolved_hostname
