@@ -7,6 +7,24 @@ from urllib.parse import urlsplit
 ACENITE_URL = "https://ingest.acenite.com"
 ALLOW_ENDPOINT_OVERRIDE_ENV = "ACENITE_AGENT_ALLOW_ENDPOINT_OVERRIDE"
 INGEST_URL_ENV = "ACENITE_AGENT_INGEST_URL"
+ACENITE_ENVIRONMENT_ENV = "ACENITE_ENVIRONMENT"
+ACENITE_ENVIRONMENT_DOCS_URL = "https://acenite.com/docs/environments"
+VALID_ACENITE_ENVIRONMENTS = {"production", "development"}
+
+
+def resolve_acenite_environment(
+    environment: Mapping[str, str] | None = None,
+) -> tuple[str, bool]:
+    environment = os.environ if environment is None else environment
+    if ACENITE_ENVIRONMENT_ENV not in environment:
+        return "production", True
+    value = environment[ACENITE_ENVIRONMENT_ENV]
+    if value not in VALID_ACENITE_ENVIRONMENTS:
+        raise ValueError(
+            "ACENITE_ENVIRONMENT must be exactly 'production' or 'development'; "
+            f"see {ACENITE_ENVIRONMENT_DOCS_URL}"
+        )
+    return value, False
 
 
 def resolve_acenite_url(environment: Mapping[str, str] | None = None) -> str:

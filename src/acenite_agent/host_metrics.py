@@ -71,6 +71,7 @@ def send_host_metrics(
     instance_id: str | None = None,
     hostname: str | None = None,
     jitter: bool = True,
+    acenite_environment: str = "production",
 ):
     if jitter:
         time.sleep(random.uniform(0.0, interval / 10))
@@ -78,7 +79,10 @@ def send_host_metrics(
     try:
         requests.post(
             f"{resolve_acenite_url()}/metrics/host",
-            headers={"Authorization": f"Bearer {api_key}"},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "X-Acenite-Environment": acenite_environment,
+            },
             json=build_host_metrics_payload(
                 service_name=service_name,
                 instance_id=instance_id,

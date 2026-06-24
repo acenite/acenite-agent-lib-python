@@ -1,4 +1,5 @@
 import unittest
+import os
 from unittest.mock import MagicMock, patch
 
 from acenite_agent.agent import AceniteAgent
@@ -35,7 +36,10 @@ class AgentPhaseTwoTests(unittest.TestCase):
         with patch("acenite_agent.otel.setup_otel", return_value=MagicMock()) as otel:
             AceniteAgent.start(api_key="key", framework="flask", app=object())
             AceniteAgent.start(api_key="key", framework="flask", app=object())
-        heartbeat.assert_called_once_with(api_key="key", interval=60.0, jitter=False)
+        heartbeat.assert_called_once_with(
+            api_key="key", interval=60.0, jitter=False,
+            acenite_environment="production",
+        )
         host.assert_called_once()
         otel.assert_called_once()
         AceniteAgent.stop()
@@ -63,6 +67,35 @@ class AgentPhaseTwoTests(unittest.TestCase):
                 enable_heartbeat=False, enable_host_metrics=False,
             )
         otel.assert_not_called()
+
+    @patch.dict(os.environ, {"ACENITE_ENVIRONMENT": "development"}, clear=True)
+    @patch("acenite_agent.agent.send_host_metrics")
+    @patch("acenite_agent.agent.send_heartbeat")
+    def test_development_runs_only_instrumentation(self, heartbeat, host):
+        with patch("acenite_agent.otel.setup_otel", return_value=MagicMock()) as otel:
+            AceniteAgent.start(api_key="key", framework="django")
+        heartbeat.assert_not_called()
+        host.assert_not_called()
+        self.assertEqual(otel.call_args.kwargs["acenite_environment"], "development")
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("builtins.print")
+    def test_missing_environment_warns_once_and_defaults_production(self, printer):
+        AceniteAgent.start(
+            api_key="key", enable_application_monitoring=False,
+            enable_heartbeat=False, enable_host_metrics=False,
+        )
+        AceniteAgent.start(api_key="key")
+        warnings = [str(call.args[0]) for call in printer.call_args_list if call.args]
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("https://acenite.com/docs/environments", warnings[0])
+
+    def test_empty_and_invalid_environment_fail_before_startup(self):
+        for value in ("", "Production", " development ", "staging"):
+            with self.subTest(value=value), patch.dict(
+                os.environ, {"ACENITE_ENVIRONMENT": value}, clear=True,
+            ), self.assertRaisesRegex(ValueError, "ACENITE_ENVIRONMENT"):
+                AceniteAgent.start(api_key="key")
 
 
 if __name__ == "__main__":

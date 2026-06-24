@@ -79,6 +79,17 @@ AceniteAgent.start(
 )
 ```
 
+Set the telemetry environment explicitly in deployed and local processes:
+
+```env
+ACENITE_ENVIRONMENT=production
+```
+
+The only accepted values are `production` and `development`. Development starts
+application instrumentation only; it does not send heartbeats or host metrics.
+If the variable is absent, the agent warns once and defaults to production. See
+https://acenite.com/docs/environments.
+
 Call `AceniteAgent.stop()` during shutdown to stop schedulers and flush tracing. `AceniteAgent.get_tracer()` remains available for manual spans.
 
 Host metrics are sent to `/metrics/host` separately from heartbeat requests.

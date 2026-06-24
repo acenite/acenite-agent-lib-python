@@ -28,7 +28,10 @@ class OpenTelemetryEndpointTests(unittest.TestCase):
 
         exporter.assert_called_once_with(
             endpoint="http://[::1]:5001/monitor/",
-            headers={"Authorization": "Bearer test-key"},
+            headers={
+                "Authorization": "Bearer test-key",
+                "X-Acenite-Environment": "production",
+            },
         )
 
 

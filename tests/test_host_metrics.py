@@ -65,6 +65,7 @@ class HostMetricsTests(unittest.TestCase):
         args, kwargs = post.call_args
         self.assertEqual(args[0], f"{ACENITE_URL}/metrics/host")
         self.assertEqual(kwargs["headers"]["Authorization"], "Bearer test-key")
+        self.assertEqual(kwargs["headers"]["X-Acenite-Environment"], "production")
 
 
 if __name__ == "__main__":

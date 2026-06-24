@@ -1,6 +1,11 @@
 from .heartbeat import send_heartbeat
 from .host_metrics import default_hostname, send_host_metrics
-from .constants import ACENITE_URL, resolve_acenite_url
+from .constants import (
+    ACENITE_ENVIRONMENT_DOCS_URL,
+    ACENITE_URL,
+    resolve_acenite_environment,
+    resolve_acenite_url,
+)
 from opentelemetry import trace
 
 
@@ -30,6 +35,13 @@ class AceniteAgent:
     ) -> None:
         if cls._started:
             return
+
+        acenite_environment, environment_defaulted = resolve_acenite_environment()
+        if environment_defaulted:
+            print(
+                "WARNING: ACENITE_ENVIRONMENT is not set; defaulting to production. "
+                f"See {ACENITE_ENVIRONMENT_DOCS_URL}"
+            )
 
         cls._validate_interval("heartbeat_interval", heartbeat_interval)
         cls._validate_interval("host_metrics_interval", host_metrics_interval)
@@ -62,24 +74,31 @@ class AceniteAgent:
                 framework=framework,
                 instrumentations=instrumentations,
                 api_key=api_key,
-                service_name=service_name
+                service_name=service_name,
+                acenite_environment=acenite_environment,
             )
 
-        if enable_heartbeat:
+        if enable_heartbeat and acenite_environment == "production":
             from apscheduler.schedulers.background import BackgroundScheduler
 
-            send_heartbeat(api_key=api_key, interval=heartbeat_interval, jitter=False)
+            send_heartbeat(
+                api_key=api_key,
+                interval=heartbeat_interval,
+                jitter=False,
+                acenite_environment=acenite_environment,
+            )
             scheduler = BackgroundScheduler(daemon=True)
             scheduler.add_job(send_heartbeat, "interval", seconds=heartbeat_interval, max_instances=1, coalesce=True,
                 kwargs={
                     "api_key": api_key,
                     "interval": heartbeat_interval,
+                    "acenite_environment": acenite_environment,
                 },
             )
             scheduler.start()
             cls._heartbeat_scheduler = scheduler
 
-        if enable_host_metrics:
+        if enable_host_metrics and acenite_environment == "production":
             from apscheduler.schedulers.background import BackgroundScheduler
 
             send_host_metrics(
@@ -89,6 +108,7 @@ class AceniteAgent:
                 instance_id=resolved_instance_id,
                 hostname=resolved_hostname,
                 jitter=False,
+                acenite_environment=acenite_environment,
             )
             scheduler = BackgroundScheduler(daemon=True)
             scheduler.add_job(send_host_metrics, "interval", seconds=host_metrics_interval, max_instances=1, coalesce=True,
@@ -98,6 +118,7 @@ class AceniteAgent:
                     "interval": host_metrics_interval,
                     "instance_id": resolved_instance_id,
                     "hostname": resolved_hostname,
+                    "acenite_environment": acenite_environment,
                 },
             )
             scheduler.start()

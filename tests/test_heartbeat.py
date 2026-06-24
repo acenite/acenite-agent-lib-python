@@ -20,6 +20,7 @@ class HeartbeatTests(unittest.TestCase):
         send_heartbeat(api_key="test-key", interval=60)
 
         self.assertEqual(post.call_args.args[0], "http://127.0.0.1:5001/heartbeat/")
+        self.assertEqual(post.call_args.kwargs["headers"]["X-Acenite-Environment"], "production")
 
 
 if __name__ == "__main__":

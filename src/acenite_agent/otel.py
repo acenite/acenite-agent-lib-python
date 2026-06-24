@@ -22,16 +22,23 @@ def setup_otel(
         framework: str,
         instrumentations: list[str] | None,
         api_key: str,
-        service_name: str
+        service_name: str,
+        acenite_environment: str = "production",
 ) -> TracerProvider:
     provider = TracerProvider(
-        resource=Resource.create({"service.name": service_name})
+        resource=Resource.create({
+            "service.name": service_name,
+            "deployment.environment.name": acenite_environment,
+        })
     )
     trace.set_tracer_provider(provider)
 
     exporter = OTLPSpanExporter(
                 endpoint=f"{resolve_acenite_url()}/monitor/",
-                headers={"Authorization": f"Bearer {api_key}"}
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "X-Acenite-Environment": acenite_environment,
+                }
                 )
 
     provider.add_span_processor(BatchSpanProcessor(exporter))
